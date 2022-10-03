@@ -14,6 +14,9 @@ class MoviesProvider extends ChangeNotifier {
   List<Movie> onDisplayMovies = [];
   List<Movie> popularsMovies = [];
 
+  //Mapeamos el id d ela pelicula y los actores que tiene
+  Map <int, List<Cast>> movieCast = {};
+
   int _popularPage = 0;
 
   MoviesProvider(){
@@ -22,12 +25,13 @@ class MoviesProvider extends ChangeNotifier {
   }
 
   Future <String> _getJsonData(String endpoint, [int page = 1]) async {
-    var url = Uri.https(_baseUrl, endpoint, {
+    final url = Uri.https(_baseUrl, endpoint, {
       'api_key': _apiKey,
       'language': _language,
       'page': '$page'
     });
 
+    // esto es lo que hace la peticion http
     final response = await http.get(url);
     return response.body;
   }
@@ -54,7 +58,31 @@ class MoviesProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<List<Cast>> getMovieCast(int movieId) async {
 
+    //Verificamos que el cast no se encuentre ya en memoria
+    if ( movieCast.containsKey(movieId)) return movieCast[movieId]!;
+
+    final jsonData = await _getJsonData('3/movie/$movieId/credits');
+    final creditresponse = CreditsResponse.fromJson((jsonData));
+
+    movieCast[movieId] = creditresponse.cast;
+
+    return creditresponse.cast;
+  }
+  Future<List<Movie>> searchMovie( String query) async {
+
+    final url = Uri.https(_baseUrl, '3/search/movie', {
+      'api_key': _apiKey,
+      'language': _language,
+      'query': query
+    });
+
+    final response = await http.get(url);
+    final searchMoviesResponse = SearchMovieResponse.fromJson(response.body);
+
+    return searchMoviesResponse.results;
+  }
 }
 
 
