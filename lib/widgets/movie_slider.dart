@@ -42,7 +42,6 @@ class _MovieSliderState extends State<MovieSlider> {
   @override
   void dispose() {
 
-
     super.dispose();
   }
 
